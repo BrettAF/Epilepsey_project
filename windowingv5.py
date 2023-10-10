@@ -226,7 +226,7 @@ for index,folder in enumerate(folders_for_making_model):
   training_data,training_labels=trainingDataPipeline(training_data,training_labels)
   testing_data, validation_data, testing_labels, validation_labels=testingDataPipeline(X_test,y_test)
 
-
+  os.chdir('..')
   training_file_labels, training_data_files = saveBins(training_data,training_labels,folder)
   testing_file_labels, testing_data_files = saveBins(testing_data,testing_labels,folder)
   validation_file_labels, validation_data_files = saveBins(validation_data,validation_labels,folder)
