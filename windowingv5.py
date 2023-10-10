@@ -190,7 +190,7 @@ def trainingDataPipeline(dfs,labels):
   labels=oneHot(labels)
   return dfs, labels
 
-def testingDataPipeline():
+def testingDataPipeline(dfs,labels):
   dfs,labels=normalize(dfs,labels)
   labels=oneHot(labels)
   testing_data, validation_data, testing_labels, validation_labels = train_test_split(dfs,labels, test_size=0.5, random_state=42)
