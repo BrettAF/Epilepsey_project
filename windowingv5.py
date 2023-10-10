@@ -3,6 +3,7 @@ import os
 import copy
 from pathlib import Path
 import inspect
+import numpy as np
 
 # Make numpy values easier to read.
 np.set_printoptions(precision=6, suppress=True)
@@ -22,7 +23,6 @@ from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
 from imblearn.under_sampling import NearMiss
 
-import numpy as np
 from numpy import where
 from numpy.random.mtrand import noncentral_chisquare
 
