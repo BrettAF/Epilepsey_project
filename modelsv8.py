@@ -123,14 +123,14 @@ for one_out in subjects:
     
     for subject in subjects:
         if one_out != subject:
-            training_data   =np.append(training_data,np.load(subject,'training_data_files.npy'))
-            training_labels =np.append(training_labels,np.load(subject,'training_file_labels.npy'))
-            testing_data    =np.append(testing_data,np.load(subject,'testing_data_files.npy'))
-            testing_labels  =np.append(testing_labels,np.load(subject,'testing_file_labels.npy'))
-            vailidation_data=np.append(vailidation_data,np.load(subject,'vailidation_data_files.npy'))
-            vailidation_labels=np.append(vailidation_labels,np.load(subject,'vailidation_file_labels.npy'))
+            training_data   =np.append(training_data,np.load( (subject+'training_data_files.npy')) )
+            training_labels =np.append(training_labels,np.load( (subject+'training_file_labels.npy')) )
+            testing_data    =np.append(testing_data,np.load( (subject+'testing_data_files.npy')) )
+            testing_labels  =np.append(testing_labels,np.load( (subject+'testing_file_labels.npy')) )
+            vailidation_data=np.append(vailidation_data,np.load( (subject+'validation_data_files.npy')) )
+            vailidation_labels=np.append(vailidation_labels,np.load( (subject+'validation_file_labels.npy')) )
 
-    os.chdir('files')
+    os.chdir('Files')
 
 
     my_training_generator = My_Custom_Generator(training_data, training_labels, batch_size)
@@ -140,7 +140,7 @@ for one_out in subjects:
 
     results_string,model=funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_validation_generator,my_testing_generator)
     os.chdir('..')
-    model.save((one_out,"longConvLSTM"))
+    model.save((one_out+"longConvLSTM"))
     print_report(results_string,one_out)
 #make_testing_dataset(testing_data)
 #printConfusionMatrix(model,testing_data,testing_labels)
