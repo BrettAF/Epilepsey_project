@@ -70,7 +70,7 @@ def saveBins(dfs,labels,folder):
     new_file=np.memmap(folder+"data"+str(i), dtype='float32', mode='w+', shape=(shape[1],shape[2]))
     new_file[:]=dfs[i][:][:]
     new_file.flush()
-    #these lines same the arrays so they can be used later.
+    #these lines save the arrays so they can be used later.
     data_files=np.append(data_files,folder+"data"+str(i))
     data_labels=np.append(data_labels,labels[i])
     if i%10000==1:
@@ -232,11 +232,11 @@ for index,folder in enumerate(folders_for_making_model):
   validation_file_labels, validation_data_files = saveBins(validation_data,validation_labels,folder)
     
 
-  fine_tuning_data, prooving_data, fine_tuning_labels, prooving_labels=fineTuningPipeline(dfs,labels)
+  #fine_tuning_data, prooving_data, fine_tuning_labels, prooving_labels=fineTuningPipeline(dfs,labels)
     
-  fine_tuning_data_files, fine_tuning_data_labels =saveBins(fine_tuning_data, fine_tuning_labels)
-  prooving_data_files, prooving_data_labels =saveBins(prooving_data, prooving_labels)
-  os.chdir('..')
-  saveArray(folder,( training_file_labels, training_data_files,testing_file_labels, testing_data_files,validation_file_labels, validation_data_files,fine_tuning_data, prooving_data, fine_tuning_labels, prooving_labels))
+  #fine_tuning_data_files, fine_tuning_data_labels =saveBins(fine_tuning_data, fine_tuning_labels)
+  #prooving_data_files, prooving_data_labels =saveBins(prooving_data, prooving_labels)
+  #os.chdir('..')
+  saveArray(folder,( training_file_labels, training_data_files,testing_file_labels, testing_data_files,validation_file_labels, validation_data_files))#,fine_tuning_data, prooving_data, fine_tuning_labels, prooving_labels))
 
   dfs=0
