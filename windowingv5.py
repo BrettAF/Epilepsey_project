@@ -5,8 +5,7 @@ from pathlib import Path
 import inspect
 import numpy as np
 
-# Make numpy values easier to read.
-np.set_printoptions(precision=6, suppress=True)
+
 import random as r
 import scipy as sp
 from scipy.stats import zscore
@@ -18,6 +17,7 @@ from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 
 from collections import Counter
+import imblearn
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
@@ -25,6 +25,8 @@ from imblearn.under_sampling import NearMiss
 
 from numpy import where
 from numpy.random.mtrand import noncentral_chisquare
+# Make numpy values easier to read.
+np.set_printoptions(precision=6, suppress=True)
 
 
 """# Reading Data"""

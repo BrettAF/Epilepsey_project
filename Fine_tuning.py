@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-'''# This program trains a module for reading EEG signals. It is designed to load NP arrays listing the binary files containing the data.
+'''# This program trains a module for reading EEG signals. It is designed to load NP arrays listing the binary files containing the data. 
 #It then uses a generator to access the data from the hard drive rather than store it to memmory. once the model has been trained,
  it is tested and a confusion matrix is generated.
 '''
 import tensorflow as tf
 from tensorflow import keras
 from keras import layers
-from keras import Sequential
-from keras.models import Model,Sequential
+from keras.models import Model
 from keras.layers import Conv2D, Flatten, Dense, Dropout, Input, MaxPool3D, GRU, Reshape, TimeDistributed, LSTM,GlobalMaxPool2D, MaxPool2D, BatchNormalization
 from keras.regularizers import l1
 
@@ -27,20 +26,23 @@ window_size = 600
 number_of_channels = 18
 
 """# Model"""
-def funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_validation_generator,my_testing_generator):
-  print('ready')
+def funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_validation_generator,testing_data):
+  number_of_channels=18
 
   outputs=2
-  #input_shape = ( window_size, number_of_channels, 1)
-  input_shape = 10
-  print(input_shape)
+  input_shape = ( window_size, number_of_channels, 1)
+
   longConvLSTM = keras.Sequential([
-      layers.Dense(input_shape),
+      layers.Conv2D(filters=32, kernel_size=(3,1) ,input_shape=input_shape),
+      layers.Conv2D(filters=16, kernel_size=(5,1)),
+      layers.MaxPool2D( pool_size=(42, 2,)),
+      layers.Reshape((14,144)),
+
+      layers.LSTM(73, activation='relu' ),
+      layers.Dense(73),
       layers.Dense(40),
       layers.Dense(outputs,activation='softmax')
   ])
-
-  print("bla")
   longConvLSTM.compile(
                   optimizer='Adam',
                   loss=tf.keras.losses.CategoricalCrossentropy(),
@@ -52,12 +54,25 @@ def funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_vali
                    epochs = number_of_epochs,
                    verbose = 1, validation_data=my_validation_generator)
 
-
-  test_loss, test_acc = longConvLSTM.evaluate(my_testing_generator, verbose=2)
+  
+  test_loss, test_acc = longConvLSTM.evaluate(testing_data, verbose=2)
 
   results_string=(str( str(longConvLSTM)+':\t test loss:'+str(test_loss)+ ", test acc:"+str(test_acc)+'\n' ))
   print( results_string)
   return results_string,longConvLSTM
+
+def fineTuneTesting(testing_data_files):
+    dfs=np.empty((1,600,18))
+    for file_name in testing_data_files:
+        new_data=np.memmap(str(file_name), dtype='float32', mode='r', shape=(600,18))
+        new_data=np.array(new_data)
+
+        #here we add the data from each file to one large file
+        dfs=np.concatenate((dfs,new_data),axis=0)
+
+    dfs=dfs[1:]
+    return dfs
+                  
 
 """# Generator"""
 learning_rate=tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=.01,
@@ -101,6 +116,7 @@ def printConfusionMatrix(model, testing_data, testing_labels):
   testing_labels=np.argmax(testing_labels)
   confusion_matrix=confusion_matrix(testing_labels,predicted_labels)
   print(confusion_matrix)
+  return str(confusion_matrix)
 
 def make_testing_dataset(testing_data):
     testing_dataframe=np.empty((1,600,18))
@@ -112,33 +128,29 @@ def make_testing_dataset(testing_data):
 """# MAIN"""
 subjects=('chb01','chb02','chb03','chb04','chb05','chb06','chb07','chb08','chb09','chb10','chb11','chb12','chb13','chb14','chb15','chb16','chb17','chb18','chb19','chb20','chb21','chb22','chb23')
 for one_out in subjects:
-    print(one_out)
-    training_data=np.array([])
-    training_labels=np.array([])
-    testing_data=np.array([])
-    testing_labels=np.array([])
-    vailidation_data =np.array([])
-    vailidation_labels =np.array([])
 
-    for subject in subjects:
-        if one_out != subject:
-            training_data   =np.append(training_data,np.load( (subject+'training_data_files.npy')) )
-            training_labels =np.append(training_labels,np.load( (subject+'training_file_labels.npy')) )
-            testing_data    =np.append(testing_data,np.load( (subject+'testing_data_files.npy')) )
-            testing_labels  =np.append(testing_labels,np.load( (subject+'testing_file_labels.npy')) )
-            vailidation_data=np.append(vailidation_data,np.load( (subject+'validation_data_files.npy')) )
-            vailidation_labels=np.append(vailidation_labels,np.load( (subject+'validation_file_labels.npy')) )
+    
 
+    training_data   =np.load( (one_out+'FineTraining_data_files.npy')) 
+    training_labels =np.load( (one_out+'Finetraining_file_labels.npy')) 
+    testing_data    =np.load( (one_out+'Finetesting_data_files.npy')) 
+    testing_labels  =np.load( (one_out+'Finetesting_file_labels.npy')) 
+    vailidation_data=np.load( (one_out+'Finevalidation_data_files.npy')) 
+    vailidation_labels=np.load( (one_out+'Finevalidation_file_labels.npy')) 
+    testing_times= np.load( (one_out+'testing_times.npy')) 
     os.chdir('Files')
 
 
     my_training_generator = My_Custom_Generator(training_data, training_labels, batch_size)
     my_validation_generator = My_Custom_Generator(vailidation_data,vailidation_labels,batch_size)
-    my_testing_generator = My_Custom_Generator(testing_data, testing_labels, batch_size)
+    testing_data = fineTuneTesting(testing_data)
 
-    results_string,model=funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_validation_generator,my_testing_generator)
+
+    results_string,model=funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_validation_generator)
     os.chdir('..')
     model.save((one_out+"longConvLSTM"))
+    confusion_matrix=printConfusionMatrix(model, testing_data, testing_labels)
+    results_string=results_string+confusion_matrix
     print_report(results_string,one_out)
 #make_testing_dataset(testing_data)
 #printConfusionMatrix(model,testing_data,testing_labels)
