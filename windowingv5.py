@@ -4,8 +4,7 @@ import copy
 from pathlib import Path
 import inspect
 
-# Make numpy values easier to read.
-np.set_printoptions(precision=6, suppress=True)
+
 import random as r
 import scipy as sp
 from scipy.stats import zscore
@@ -25,7 +24,8 @@ from imblearn.under_sampling import NearMiss
 import numpy as np
 from numpy import where
 from numpy.random.mtrand import noncentral_chisquare
-
+# Make numpy values easier to read.
+np.set_printoptions(precision=6, suppress=True)
 
 """# Reading Data"""
 
