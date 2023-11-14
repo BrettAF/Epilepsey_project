@@ -35,7 +35,13 @@ def funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_vali
   input_shape = 10
   print(input_shape)
   longConvLSTM = keras.Sequential([
-      layers.Dense(input_shape),
+      layers.Conv2D(filters=32, kernel_size=(3,1) ,input_shape=input_shape),
+      layers.Conv2D(filters=16, kernel_size=(5,1)),
+      layers.MaxPool2D( pool_size=(42, 2,)),
+      layers.Reshape((14,144)),
+
+      layers.LSTM(73, activation='relu' ),
+      layers.Dense(73),
       layers.Dense(40),
       layers.Dense(outputs,activation='softmax')
   ])
