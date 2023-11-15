@@ -1,0 +1,17 @@
+pandas
+mne
+numpy
+scipy
+scikit-learn
+tensorflow
+imbalanced-learn
+# pip install -r requirements.txt
+
+#jupyter notebook --allow-root
+
+#sudo docker run -v /home/ncladmin/Downloads/Brett/:/opt/tritonserver/BRETT -it --rm --runtime nvidia --network host nvcr.io/nvidia/merlin/merlin-tensorflow:nightly
+#wget https://physionet.org/static/published-projects/chbmit/chb-mit-scalp-eeg-database-1.0.0.zip
+
+
+#sudo docker run -v /home/neurocognition/Documents/Brett:/opt/tritonserver/BRETT -it --rm -runtime nvidia--network host nvcr.io/nvidia/merlin/merlin-tensorflow:nightly
+
