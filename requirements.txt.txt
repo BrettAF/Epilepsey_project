@@ -13,5 +13,5 @@ imbalanced-learn
 #wget https://physionet.org/static/published-projects/chbmit/chb-mit-scalp-eeg-database-1.0.0.zip
 
 
-#sudo docker run -v /home/neurocognition/Documents/Brett:/opt/tritonserver/BRETT -it --rm -runtime nvidia--network host nvcr.io/nvidia/merlin/merlin-tensorflow:nightly
+#sudo docker run -v /home/neurocognition/Documents/Brett:/opt/tritonserver/BRETT -it --rm -runtime nvidia --network host nvcr.io/nvidia/merlin/merlin-tensorflow:nightly
 

@@ -120,22 +120,27 @@ subjects=('chb01','chb02','chb03','chb04','chb05','chb06','chb07','chb08','chb09
 for one_out in subjects:
     print(one_out)
     training_data=np.array([])
-    training_labels=np.array([])
+    training_labels=np.array([0,0])
     testing_data=np.array([])
-    testing_labels=np.array([])
+    testing_labels=np.array([0,0])
     vailidation_data =np.array([])
-    vailidation_labels =np.array([])
+    vailidation_labels =np.array([0,0])
 
     for subject in subjects:
         if one_out != subject:
             training_data   =np.append(training_data,np.load( (subject+'training_data_files.npy')) )
-            training_labels =np.append(training_labels,np.load( (subject+'training_file_labels.npy')) )
+            training_labels =np.vstack((  training_labels,np.load( (subject+'training_labels.npy')) ))
             testing_data    =np.append(testing_data,np.load( (subject+'testing_data_files.npy')) )
-            testing_labels  =np.append(testing_labels,np.load( (subject+'testing_file_labels.npy')) )
+            testing_labels  =np.vstack(( testing_labels,np.load( (subject+'testing_labels.npy')) ))
             vailidation_data=np.append(vailidation_data,np.load( (subject+'validation_data_files.npy')) )
-            vailidation_labels=np.append(vailidation_labels,np.load( (subject+'validation_file_labels.npy')) )
+            vailidation_labels=np.vstack(( vailidation_labels,np.load( (subject+'validation_labels.npy')) ))
 
     os.chdir('Files')
+    training_labels=training_labels[1:]
+    testing_labels=testing_labels[1:]
+    vailidation_labels=vailidation_labels[1:]
+
+
 
 
     my_training_generator = My_Custom_Generator(training_data, training_labels, batch_size)

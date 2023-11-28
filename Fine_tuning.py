@@ -26,12 +26,7 @@ window_size = 600
 number_of_channels = 18
 
 """# Model"""
-def funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_validation_generator,testing_data):
-  number_of_channels=18
-
-  outputs=2
-  input_shape = ( window_size, number_of_channels, 1)
-
+'''
   longConvLSTM = keras.Sequential([
       layers.Conv2D(filters=32, kernel_size=(3,1) ,input_shape=input_shape),
       layers.Conv2D(filters=16, kernel_size=(5,1)),
@@ -43,30 +38,40 @@ def funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_vali
       layers.Dense(40),
       layers.Dense(outputs,activation='softmax')
   ])
-  longConvLSTM.compile(
-                  optimizer='Adam',
-                  loss=tf.keras.losses.CategoricalCrossentropy(),
-                  metrics=['accuracy'])
+'''
+# Loads a model that already exists. freezes some layers, then trains the model on a tinetuning set. It then prints the results
+def fineTune(training_generator,testing_data,testing_labels,name):
 
-  print('\n',longConvLSTM.summary())
+  pretrained_model= tf.keras.models.load_model(name+"longConvLSTM")
 
-  longConvLSTM.fit(my_training_generator,
+  # Specify the names or indices of the layers you want to freeze
+  layers_to_freeze = [0,1,2,3,4,5] 
+
+  # Freeze the specified layers
+  for layer in pretrained_model.layers:
+    if layer.name in layers_to_freeze or pretrained_model.layers.index(layer) in layers_to_freeze:
+        layer.trainable = False
+  
+  
+  print('\n',pretrained_model.summary())
+
+  pretrained_model.fit(training_generator,
                    epochs = number_of_epochs,
-                   verbose = 1, validation_data=my_validation_generator)
+                   verbose = 1)
 
   
-  test_loss, test_acc = longConvLSTM.evaluate(testing_data, verbose=2)
+  test_loss, test_acc = pretrained_model.evaluate(testing_data, testing_labels, verbose=2)
 
-  results_string=(str( str(longConvLSTM)+':\t test loss:'+str(test_loss)+ ", test acc:"+str(test_acc)+'\n' ))
+  results_string=(str( str(pretrained_model)+':\t test loss:'+str(test_loss)+ ", test acc:"+str(test_acc)+'\n' ))
   print( results_string)
-  return results_string,longConvLSTM
+  return results_string,pretrained_model
+
 
 def fineTuneTesting(testing_data_files):
     dfs=np.empty((1,600,18))
     for file_name in testing_data_files:
         new_data=np.memmap(str(file_name), dtype='float32', mode='r', shape=(600,18))
         new_data=np.array(new_data)
-
         #here we add the data from each file to one large file
         dfs=np.concatenate((dfs,new_data),axis=0)
 
@@ -74,11 +79,13 @@ def fineTuneTesting(testing_data_files):
     return dfs
                   
 
-"""# Generator"""
+
 learning_rate=tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=.01,
                                                                 first_decay_steps=20, t_mul=2.0, m_mul=1.0, alpha=0.0, name=None)
 opt = keras.optimizers.legacy.Adam(learning_rate=learning_rate)
 
+
+"""# Generator"""
 class My_Custom_Generator(keras.utils.Sequence) :
 
   def __init__(self, filenames, labels, batch_size) :
@@ -100,9 +107,9 @@ class My_Custom_Generator(keras.utils.Sequence) :
 '''# This prints a report about how the model performed'''
 def print_report(strings,name):
   curr_time = str(time.strftime("%m-%d_%H:%M", time.localtime()))
-  with open('general_'+name+'.txt',"w") as writer:
+  with open('fine_tune_'+name+'.txt',"w") as writer:
 
-    writer.write('--Accuracy on testing data--')
+    writer.write('--Accuracy on prooving data--')
     for string in strings:
       print(string)
       writer.write(curr_time)
@@ -127,30 +134,33 @@ def make_testing_dataset(testing_data):
 
 """# MAIN"""
 subjects=('chb01','chb02','chb03','chb04','chb05','chb06','chb07','chb08','chb09','chb10','chb11','chb12','chb13','chb14','chb15','chb16','chb17','chb18','chb19','chb20','chb21','chb22','chb23')
-for one_out in subjects:
+fine_tuning_data=np.array([])
+fine_tuning_labels=np.array([0,0])
+prooving_data=np.array([])
+prooving_labels=np.array([0,0])
 
+for subject in subjects:
+    print(subject)
+    fine_tuning_data     =np.append( fine_tuning_data,np.load(     (subject+'fine_tuning_data.npy')) )
+    fine_tuning_labels   =np.vstack((fine_tuning_labels,np.load(   (subject+'fine_tuning_labels.npy')) ))
+    prooving_data   =np.append( prooving_data,np.load(   (subject+'prooving_data.npy')) )
+    prooving_labels =np.vstack((prooving_labels,np.load( (subject+'prooving_labels.npy')) ))
     
+    #This replaces the indexes to the testing dataset with the testing data itself
+    prooving_data=make_testing_dataset(prooving_data)
 
-    training_data   =np.load( (one_out+'FineTraining_data_files.npy')) 
-    training_labels =np.load( (one_out+'Finetraining_file_labels.npy')) 
-    testing_data    =np.load( (one_out+'Finetesting_data_files.npy')) 
-    testing_labels  =np.load( (one_out+'Finetesting_file_labels.npy')) 
-    vailidation_data=np.load( (one_out+'Finevalidation_data_files.npy')) 
-    vailidation_labels=np.load( (one_out+'Finevalidation_file_labels.npy')) 
-    testing_times= np.load( (one_out+'testing_times.npy')) 
     os.chdir('Files')
+    training_labels=training_labels[1:]
+    testing_labels=testing_labels[1:]
 
 
-    my_training_generator = My_Custom_Generator(training_data, training_labels, batch_size)
-    my_validation_generator = My_Custom_Generator(vailidation_data,vailidation_labels,batch_size)
+    my_training_generator = My_Custom_Generator(fine_tuning_data, fine_tuning_labels, batch_size)
+    results_string,pretrained_model= fineTune(my_training_generator,prooving_data,prooving_labels,subject)
     testing_data = fineTuneTesting(testing_data)
 
 
-    results_string,model=funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_validation_generator)
     os.chdir('..')
-    model.save((one_out+"longConvLSTM"))
-    confusion_matrix=printConfusionMatrix(model, testing_data, testing_labels)
+    pretrained_model.save((subject+"fineTunedLSTM"))
+    confusion_matrix=printConfusionMatrix(pretrained_model, prooving_data, prooving_labels)
     results_string=results_string+confusion_matrix
-    print_report(results_string,one_out)
-#make_testing_dataset(testing_data)
-#printConfusionMatrix(model,testing_data,testing_labels)
+    print_report(results_string,subject)
