@@ -125,7 +125,7 @@ def printConfusionMatrix(model, testing_data, testing_labels):
   print(confusion_matrix)
   return str(confusion_matrix)
 
-def make_testing_dataset(testing_data):
+def makeTestingDataset(testing_data):
     testing_dataframe=np.empty((1,600,18))
     for count,file_name in enumerate(testing_data):
         new_dataframe=np.array(np.memmap(str(file_name), dtype='float32', mode='r', shape=(600,18)))
@@ -141,13 +141,13 @@ prooving_labels=np.array([0,0])
 
 for subject in subjects:
     print(subject)
-    fine_tuning_data     =np.append( fine_tuning_data,np.load(     (subject+'fine_tuning_data.npy')) )
-    fine_tuning_labels   =np.vstack((fine_tuning_labels,np.load(   (subject+'fine_tuning_labels.npy')) ))
-    prooving_data   =np.append( prooving_data,np.load(   (subject+'prooving_data.npy')) )
-    prooving_labels =np.vstack((prooving_labels,np.load( (subject+'prooving_labels.npy')) ))
+    fine_tuning_data  =np.append( fine_tuning_data,np.load(  (subject+'fine_tuning_data.npy')) )
+    fine_tuning_labels=np.vstack((fine_tuning_labels,np.load((subject+'fine_tuning_labels.npy')) ))
+    prooving_data     =np.append( prooving_data,np.load(   (subject+'prooving_data.npy')) )
+    prooving_labels   =np.vstack((prooving_labels,np.load( (subject+'prooving_labels.npy')) ))
     
     #This replaces the indexes to the testing dataset with the testing data itself
-    prooving_data=make_testing_dataset(prooving_data)
+    prooving_data=makeTestingDataset(prooving_data)
 
     os.chdir('Files')
     training_labels=training_labels[1:]

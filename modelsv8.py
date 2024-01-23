@@ -30,9 +30,8 @@ number_of_channels = 18
 def funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_validation_generator,my_testing_generator):
   print('ready')
 
-  outputs=1
+  outputs=2
   input_shape = ( window_size, number_of_channels, 1)
-
   print(input_shape)
   longConvLSTM = keras.Sequential([
       layers.Conv2D(filters=32, kernel_size=(3,1) ,input_shape=input_shape),
@@ -49,7 +48,7 @@ def funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_vali
   print("bla")
   longConvLSTM.compile(
                   optimizer='Adam',
-                  loss=tf.keras.losses.binary_crossentropy(),
+                  loss=tf.keras.losses.CategoricalCrossentropy(),
                   metrics=['accuracy'])
 
   print('\n',longConvLSTM.summary())
@@ -139,9 +138,6 @@ for one_out in subjects:
     training_labels=training_labels[1:]
     testing_labels=testing_labels[1:]
     vailidation_labels=vailidation_labels[1:]
-
-
-
 
     my_training_generator = My_Custom_Generator(training_data, training_labels, batch_size)
     my_validation_generator = My_Custom_Generator(vailidation_data,vailidation_labels,batch_size)
