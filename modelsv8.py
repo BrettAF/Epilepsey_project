@@ -97,7 +97,7 @@ def print_report(strings,name):
       print(string)
       writer.erite("At the time:")
       writer.write(curr_time)
-      writer.write("\n with results:\n")
+      writer.write("\n With results:\n")
       writer.write(string)
   writer.close
 
@@ -117,6 +117,7 @@ def make_testing_dataset(testing_data):
     return testing_dataframe[1:]
 
 """# MAIN"""
+os.chdir("..")
 subjects=('chb01','chb02','chb03','chb04','chb05','chb06','chb07','chb08','chb09','chb10','chb11','chb12','chb13','chb14','chb15','chb16','chb17','chb18','chb19','chb20','chb21','chb22','chb23')
 for one_out in subjects:
     print(one_out)
@@ -148,6 +149,6 @@ for one_out in subjects:
     results_string,model=funLongConvLSTM(my_training_generator,window_size,number_of_channels,my_validation_generator,my_testing_generator)
     os.chdir('..')
     model.save((one_out+"longConvLSTM"))
-    print_report(results_string,one_out)
+    print_report([results_string],one_out)
 #make_testing_dataset(testing_data)
 #printConfusionMatrix(model,testing_data,testing_labels)
