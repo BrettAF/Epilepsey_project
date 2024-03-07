@@ -3,6 +3,7 @@ import os
 import copy
 from pathlib import Path
 import inspect
+import numpy as np
 
 
 import random as r
@@ -16,16 +17,17 @@ from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 
 from collections import Counter
+import imblearn
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
 from imblearn.under_sampling import NearMiss
 
-import numpy as np
 from numpy import where
 from numpy.random.mtrand import noncentral_chisquare
 # Make numpy values easier to read.
 np.set_printoptions(precision=6, suppress=True)
+
 
 """# Reading Data"""
 
@@ -63,14 +65,14 @@ def readBinFiles(folder):
 # A function for saving the dataset as binary files.
 def saveBins(dfs,labels,folder):
   shape=dfs.shape
-  os.chdir('files')
+  os.chdir('Files')
   data_labels=[]
   data_files=[]
   for i in range(0,dfs.shape[0]):
     new_file=np.memmap(folder+"data"+str(i), dtype='float32', mode='w+', shape=(shape[1],shape[2]))
     new_file[:]=dfs[i][:][:]
     new_file.flush()
-    #these lines same the arrays so they can be used later.
+    #these lines save the arrays so they can be used later.
     data_files=np.append(data_files,folder+"data"+str(i))
     data_labels=np.append(data_labels,labels[i])
     if i%10000==1:
@@ -171,6 +173,7 @@ def oneHot(labels):
     else :
         new_array.append(one_vector)
   new_array=np.array(new_array)
+  print(new_array.shape)
   return new_array
 
 #This function saves an np array
@@ -181,6 +184,8 @@ def saveArray(qualifier,data_files):
     print(qualifier+file_name)
     np.save( qualifier+file_name , files)
 
+
+
 def trainingDataPipeline(dfs,labels):
   #dfs,labels=FFT(dfs,labels)
   dfs,labels=balance(dfs,labels)
@@ -188,7 +193,7 @@ def trainingDataPipeline(dfs,labels):
   labels=oneHot(labels)
   return dfs, labels
 
-def testingDataPipeline():
+def testingDataPipeline(dfs,labels):
   dfs,labels=normalize(dfs,labels)
   labels=oneHot(labels)
   testing_data, validation_data, testing_labels, validation_labels = train_test_split(dfs,labels, test_size=0.5, random_state=42)
@@ -196,15 +201,19 @@ def testingDataPipeline():
 
 def fineTuningPipeline(dfs,labels):
   dfs,labels=normalize(dfs,labels)
-  one_hot_labels=oneHot(labels)
-  fine_tuning_data, prooving_data, fine_tuning_labels, prooving_labels = train_test_split(dfs,labels, test_size=0.01, random_state=42, shuffle=False)
+  labels=oneHot(labels)
+  fine_tuning_data, prooving_data, fine_tuning_labels, prooving_labels = train_test_split(dfs,labels, test_size=0.9, random_state=42, shuffle=False)
+  fine_tuning_data,fine_tuning_labels=balance(fine_tuning_data,fine_tuning_labels)
+  return fine_tuning_data, fine_tuning_data, prooving_data, fine_tuning_labels, prooving_labels
+  
 
 
 """# MAIN"""
 #This is the period before a seizure that will be examined.
 period_of_interest=60*60*1
 
-folders_for_making_model = ('chb01','chb02','chb03','chb04','chb05','chb06','chb07','chb08','chb09','chb10','chb11','chb12','chb13','chb14','chb15','chb16','chb17','chb18','chb19','chb20','chb21','chb22','chb23')
+folders_for_making_model = ('chb23',)#'chb02','chb03','chb04','chb05','chb06','chb07','chb08','chb09','chb10','chb11','chb12','chb13','chb14','chb15','chb16','chb17','chb18','chb19','chb20','chb21','chb22','cnb23')
+
 
 #This for loop processes the data for the all subjects who are not being excluded
 for index,folder in enumerate(folders_for_making_model):
@@ -213,13 +222,25 @@ for index,folder in enumerate(folders_for_making_model):
   #this is the code for creating the large dataset from many subjects
   dfs,labels=readBinFiles(folder)
   dfs,labels=removeSeizures(dfs,labels, period_of_interest)
-  dfs,labels=shuffle(dfs,labels)
-  training_data, X_test, training_labels, y_test = train_test_split(dfs,labels, test_size=0.1, random_state=42)
-  training_data,training_labels=trainingDataPipeline(training_data,training_labels)
 
+  training_data, X_test, training_labels, y_test = train_test_split(dfs,labels, test_size=0.1, random_state=42)
+    
+  #pipelining the data for the general dataset
+  training_data,training_labels=trainingDataPipeline(training_data,training_labels)
   testing_data, validation_data, testing_labels, validation_labels=testingDataPipeline(X_test,y_test)
 
   os.chdir('..')
-  data_labels, data_files = saveBins(dfs,labels,folder)
+  training_file_labels, training_data_files = saveBins(training_data,training_labels,folder)
+  testing_file_labels, testing_data_files = saveBins(testing_data,testing_labels,folder)
+  validation_file_labels, validation_data_files = saveBins(validation_data,validation_labels,folder)
+    
+
+  #fine_tuning_data, prooving_data, fine_tuning_labels, prooving_labels=fineTuningPipeline(dfs,labels)
+    
+  #fine_tuning_data_files, fine_tuning_data_labels =saveBins(fine_tuning_data, fine_tuning_labels)
+  #prooving_data_files, prooving_data_labels =saveBins(prooving_data, prooving_labels)
+  #os.chdir('..')
+  print("training shape",training_labels.shape)
+  saveArray(folder,( training_labels, training_data_files,testing_labels, testing_data_files,validation_labels, validation_data_files))#,fine_tuning_data, prooving_data, fine_tuning_labels, prooving_labels))
+
   dfs=0
-  saveArray(folder,(testing_data, validation_data, testing_labels, validation_labels,training_data,training_labels))
