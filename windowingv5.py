@@ -140,7 +140,7 @@ def balance(dfs,labels):
   #These two if statements prevent the rebalancing from being called if the data is already balanced
   if ((counter[1])/len(dfs))<=.40:
     dfs=dfs.reshape(-1,shape[1]*shape[2]) #iblearn wants a specific shape of data,
-    dfs, labels = under.fit_resample(dfs, labels )
+    dfs, labels = nr.fit_resample(dfs, labels )
   else:print('skipped-U')
 
   counter = Counter(labels)
@@ -213,7 +213,7 @@ def fineTuningPipeline(dfs,labels):
 period_of_interest=60*60*1
 
 folders_for_making_model = ('chb23',)#'chb02','chb03','chb04','chb05','chb06','chb07','chb08','chb09','chb10','chb11','chb12','chb13','chb14','chb15','chb16','chb17','chb18','chb19','chb20','chb21','chb22','cnb23')
-
+os.chdir("..")
 
 #This for loop processes the data for the all subjects who are not being excluded
 for index,folder in enumerate(folders_for_making_model):
